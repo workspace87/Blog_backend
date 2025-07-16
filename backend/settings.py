@@ -10,9 +10,9 @@ env.read_env()
 BASE_DIR = Path(__file__).resolve().parent.parent
 
 # SECURITY WARNING: keep the secret key used in production secret!
-SECRET_KEY = '6v$z@!1x^rj#u^+g@3!e@p+z@x$g!9@r@&x$z@!1x^rj#u^+g@3!e@p+z@x$g!9@r'
+SECRET_KEY = os.environ.get("SECRET_KEY")
 # SECURITY WARNING: don't run with debug turned on in production!
-DEBUG = env.bool("DEBUG", default=False)
+DEBUG = os.environ.get("DEBUG", "False").lower() == "true"
 
 ALLOWED_HOSTS = env.list("ALLOWED_HOSTS", default=["localhost", "127.0.0.1"])
 
@@ -79,7 +79,8 @@ DATABASES = {
     }
 }
 
-DATABASES['default'] = dj_database_url.parse("postgresql://blog_data_8w5a_user:Gz2XMwvNjieTjduW4XSUxa3n7G3ZThmP@dpg-d1r0fhvdiees73fdqqp0-a.oregon-postgres.render.com/blog_data_8w5a")
+database_url = os.environ.get("DATABASE_URL")
+DATABASES['default'] = dj_database_url.parse(database_url)
 
 # 
 
