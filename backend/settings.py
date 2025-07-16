@@ -1,9 +1,7 @@
-# settings.py (corrected)
-
-import os
 from pathlib import Path
 from datetime import timedelta
 from environs import Env
+import os
 import dj_database_url
 
 env = Env()
@@ -11,25 +9,27 @@ env.read_env()
 
 BASE_DIR = Path(__file__).resolve().parent.parent
 
-SECRET_KEY = env("SECRET_KEY", "your-default-dev-key")
-DEBUG = env.bool("DEBUG", False)
-ALLOWED_HOSTS = ['*']
+# SECURITY WARNING: keep the secret key used in production secret!
+SECRET_KEY = '6v$z@!1x^rj#u^+g@3!e@p+z@x$g!9@r@&x$z@!1x^rj#u^+g@3!e@p+z@x$g!9@r'
+# SECURITY WARNING: don't run with debug turned on in production!
+DEBUG = env.bool("DEBUG", default=False)
 
+ALLOWED_HOSTS = env.list("ALLOWED_HOSTS", default=["localhost", "127.0.0.1"])
+
+# Application definition
 INSTALLED_APPS = [
-    # Core apps
+    'jazzmin',
     'django.contrib.admin',
     'django.contrib.auth',
     'django.contrib.contenttypes',
     'django.contrib.sessions',
     'django.contrib.messages',
     'django.contrib.staticfiles',
-    'whitenoise.runserver_nostatic',
 
-    # Custom
+    # Custom Apps
     'api',
 
-    # Third-party
-    'jazzmin',
+    # Third Party Apps
     'rest_framework',
     'rest_framework_simplejwt.token_blacklist',
     'drf_yasg',
@@ -41,8 +41,8 @@ INSTALLED_APPS = [
 
 MIDDLEWARE = [
     'django.middleware.security.SecurityMiddleware',
-    "whitenoise.middleware.WhiteNoiseMiddleware",
     'corsheaders.middleware.CorsMiddleware',
+    'whitenoise.middleware.WhiteNoiseMiddleware',  # for static file serving
     'django.contrib.sessions.middleware.SessionMiddleware',
     'django.middleware.common.CommonMiddleware',
     'django.middleware.csrf.CsrfViewMiddleware',
@@ -71,111 +71,74 @@ TEMPLATES = [
 
 WSGI_APPLICATION = 'backend.wsgi.application'
 
+# Database
 DATABASES = {
-    'default': dj_database_url.config(
-        default='sqlite:///db.sqlite3', # This is for local development fallback
-        conn_max_age=600 # Keep connections alive longer
-    )
+    'default': {
+        'ENGINE': 'django.db.backends.sqlite3',
+        'NAME': BASE_DIR / 'db.sqlite3',
+    }
 }
 
+DATABASES['default'] = dj_database_url.parse("postgresql://blog_data_8w5a_user:Gz2XMwvNjieTjduW4XSUxa3n7G3ZThmP@dpg-d1r0fhvdiees73fdqqp0-a.oregon-postgres.render.com/blog_data_8w5a")
+
+# 
+
+# Password validation
 AUTH_PASSWORD_VALIDATORS = [
-    {
-        'NAME': 'django.contrib.auth.password_validation.UserAttributeSimilarityValidator',
-    },
-    {
-        'NAME': 'django.contrib.auth.password_validation.MinimumLengthValidator',
-    },
-    {
-        'NAME': 'django.contrib.auth.password_validation.CommonPasswordValidator',
-    },
-    {
-        'NAME': 'django.contrib.auth.password_validation.NumericPasswordValidator',
-    },
+    {'NAME': 'django.contrib.auth.password_validation.UserAttributeSimilarityValidator'},
+    {'NAME': 'django.contrib.auth.password_validation.MinimumLengthValidator'},
+    {'NAME': 'django.contrib.auth.password_validation.CommonPasswordValidator'},
+    {'NAME': 'django.contrib.auth.password_validation.NumericPasswordValidator'},
 ]
 
-
+# Internationalization
 LANGUAGE_CODE = 'en-us'
 TIME_ZONE = 'UTC'
 USE_I18N = True
 USE_TZ = True
+
 DEFAULT_AUTO_FIELD = 'django.db.models.BigAutoField'
+
+# Static and Media files
+STATIC_URL = '/static/'
+STATICFILES_DIRS = [BASE_DIR / 'static']
+STATIC_ROOT = BASE_DIR / 'staticfiles'
+MEDIA_URL = '/media/'
+MEDIA_ROOT = BASE_DIR / 'media'
+
 AUTH_USER_MODEL = 'api.User'
 
-STATIC_URL = '/static/'
-STATIC_ROOT = os.path.join(BASE_DIR, 'staticfiles') # Where collected static files will go
-# Add this if you have static files in apps' static/ dirs
-STATICFILES_DIRS = [
-    # os.path.join(BASE_DIR, 'static'), # Example for project-level static
-]
-STATICFILES_STORAGE = 'whitenoise.storage.CompressedManifestStaticFilesStorage'
+# Site URL
+SITE_URL = env("SITE_URL", default="http://localhost:8000")
 
 
-MEDIA_URL = 'media/'
-MEDIA_ROOT = os.path.join(BASE_DIR, 'mediafiles')
 
-# Environment values with fallbacks
-SITE_URL = env("SITE_URL", "http://localhost:8000")
-STRIPE_PUBLIC_KEY = env("STRIPE_PUBLIC_KEY", "pk_test_default")
-STRIPE_SECRET_KEY = env("STRIPE_SECRET_KEY", "sk_test_default")
-FROM_EMAIL = env("FROM_EMAIL", "noreply@example.com")
-EMAIL_BACKEND = env("EMAIL_BACKEND", "django.core.mail.backends.console.EmailBackend")
-DEFAULT_FROM_EMAIL = env("DEFAULT_FROM_EMAIL", "noreply@example.com")
-SERVER_EMAIL = env("SERVER_EMAIL", "server@example.com")
-
-# JWT settings
-SIMPLE_JWT = { ... }  # Keep as you had it
-
-CORS_ALLOW_ALL_ORIGINS = True
+# JWT Settings
 REST_FRAMEWORK = {
-    'DEFAULT_AUTHENTICATION_CLASSES': [
+    'DEFAULT_AUTHENTICATION_CLASSES': (
         'rest_framework_simplejwt.authentication.JWTAuthentication',
-    ],
+    )
 }
-
-
-ANYMAIL = {
-    "MAILERSEND_API_TOKEN": env("MAILERSEND_API_TOKEN", "your-mailersend-token"),
-}
-
-
-
-
-
 
 SIMPLE_JWT = {
     'ACCESS_TOKEN_LIFETIME': timedelta(minutes=5),
     'REFRESH_TOKEN_LIFETIME': timedelta(days=50),
     'ROTATE_REFRESH_TOKENS': True,
     'BLACKLIST_AFTER_ROTATION': True,
-    'UPDATE_LAST_LOGIN': False,
-
     'ALGORITHM': 'HS256',
-
-    'VERIFYING_KEY': None,
-    'AUDIENCE': None,
-    'ISSUER': None,
-    'JWK_URL': None,
-    'LEEWAY': 0,
-
     'AUTH_HEADER_TYPES': ('Bearer',),
     'AUTH_HEADER_NAME': 'HTTP_AUTHORIZATION',
     'USER_ID_FIELD': 'id',
     'USER_ID_CLAIM': 'user_id',
-    'USER_AUTHENTICATION_RULE': 'rest_framework_simplejwt.authentication.default_user_authentication_rule',
-
     'AUTH_TOKEN_CLASSES': ('rest_framework_simplejwt.tokens.AccessToken',),
     'TOKEN_TYPE_CLAIM': 'token_type',
     'TOKEN_USER_CLASS': 'rest_framework_simplejwt.models.TokenUser',
-
     'JTI_CLAIM': 'jti',
-
     'SLIDING_TOKEN_REFRESH_EXP_CLAIM': 'refresh_exp',
     'SLIDING_TOKEN_LIFETIME': timedelta(minutes=5),
     'SLIDING_TOKEN_REFRESH_LIFETIME': timedelta(days=1),
 }
 
 
-
+# CORS
 CORS_ALLOW_ALL_ORIGINS = True
-
-
