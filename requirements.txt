@@ -22,7 +22,7 @@ djangorestframework==3.14.0
 djangorestframework-simplejwt==5.2.2
 django-storages==1.14.6
 dj-database-url==1.2.0
-
+gunicorn=23.0.0
 drf-yasg==1.21.7
 environs==14.2.0
 marshmallow==3.20.1
