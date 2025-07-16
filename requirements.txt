@@ -28,3 +28,4 @@ environs==14.2.0
 marshmallow==3.20.1
 setuptools==80.9.0
 psycopg2-binary==2.9.10
+shortuuid==1.0.11
