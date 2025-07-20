@@ -16,15 +16,13 @@ schema_view = get_schema_view(
     public=True,
     permission_classes=(permissions.AllowAny,),
 )
-def root_view(request):
-    return JsonResponse({"message": "Welcome to the API backend!"})
+
 
 
 
 urlpatterns = [
-    path('', root_view),
     path('swagger/', schema_view.with_ui('swagger', cache_timeout=0), name='schema-swagger-ui'),
-    
+
     path("admin/", admin.site.urls),
     path("api/v1/", include("api.urls")),
 ]
