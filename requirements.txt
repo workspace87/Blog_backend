@@ -1,9 +1,9 @@
 asgiref==3.9.1
 boto3==1.39.6
-botocore==1.39.6
+botocore==1.39.9
 channels==4.2.2
-cloudinary==1.43.0
-crispy-bootstrap4==2024.10
+cloudinary==1.44.1
+crispy-bootstrap4==2025.6
 Django==5.2.4
 django-allauth==65.8.0
 django-anymail==9.1

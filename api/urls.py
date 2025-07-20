@@ -1,6 +1,12 @@
 from django.urls import path, include
 from rest_framework_simplejwt.views import TokenRefreshView
 from api import views as api_views
+from django.urls import path
+# from .views import home
+
+# urlpatterns = [
+#     path('', home),
+# ]
 
 urlpatterns = [
     # Userauths API Endpoints

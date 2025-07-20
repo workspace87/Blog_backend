@@ -29,6 +29,10 @@ import random
 # Custom Imports
 from api import serializer as api_serializer
 from api import models as api_models
+from django.http import HttpResponse
+
+def home(request):
+    return HttpResponse("Welcome to the blog backend!")
 
 
 # This code defines a DRF View class called MyTokenObtainPairView, which inherits from TokenObtainPairView.
