@@ -95,9 +95,16 @@ WSGI_APPLICATION = 'backend.wsgi.application'
 # Database
 # https://docs.djangoproject.com/en/4.2/ref/settings/#databases
 
-
-DATABASES = {
-        'default': env.dj_db_url("DATABASE_URL", default="postgresql://blog_data_8w5a_user:Gz2XMwvNjieTjduW4XSUxa3n7G3ZThmP@dpg-d1r0fhvdiees73fdqqp0-a/blog_data_8w5a")
+if env.bool("USE_SQLITE", default=True):
+    DATABASES = {
+        'default': {
+            'ENGINE': 'django.db.backends.sqlite3',
+            'NAME': BASE_DIR / 'db.sqlite3',
+        }
+    }
+else:
+    DATABASES = {
+        'default': env.dj_db_url("DATABASE_URL")
     }
 
 
