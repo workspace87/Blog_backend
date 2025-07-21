@@ -97,7 +97,7 @@ WSGI_APPLICATION = 'backend.wsgi.application'
 
 
 DATABASES = {
-        'default': env.dj_db_url("DATABASE_URL")
+        'default': env.dj_db_url("DATABASE_URL", default="postgresql://blog_data_8w5a_user:Gz2XMwvNjieTjduW4XSUxa3n7G3ZThmP@dpg-d1r0fhvdiees73fdqqp0-a/blog_data_8w5a")
     }
 
 
