@@ -14,6 +14,7 @@ from pathlib import Path
 from datetime import timedelta
 from environs import Env
 import os
+import dj_database_url # <--- ADD THIS IMPORT
 env = Env()
 env.read_env()
 
@@ -28,9 +29,9 @@ BASE_DIR = Path(__file__).resolve().parent.parent
 SECRET_KEY = env.str("DJANGO_SECRET_KEY")
 
 # SECURITY WARNING: don't run with debug turned on in production!
-DEBUG = True
+DEBUG = True # Keep this True for local development
 
-ALLOWED_HOSTS = ["*"]
+ALLOWED_HOSTS = ["*"] # Keep this for local development
 
 # Application definition
 
@@ -95,17 +96,24 @@ WSGI_APPLICATION = 'backend.wsgi.application'
 # Database
 # https://docs.djangoproject.com/en/4.2/ref/settings/#databases
 
-if env.bool("USE_SQLITE", default=True):
+# Ensure USE_SQLITE is correctly evaluated
+USE_SQLITE = env.bool("USE_SQLITE", default=True) # <--- Explicitly get the boolean value
+
+if USE_SQLITE:
     DATABASES = {
         'default': {
             'ENGINE': 'django.db.backends.sqlite3',
             'NAME': BASE_DIR / 'db.sqlite3',
         }
     }
+    print("DEBUG: Using SQLite for database.") # <--- Added print for debugging
 else:
+    # Ensure dj_database_url is used correctly for DATABASE_URL
+    DATABASE_URL = env.str("DATABASE_URL") # <--- Get DATABASE_URL string
     DATABASES = {
-        'default': env.dj_db_url("DATABASE_URL")
+        'default': dj_database_url.parse(DATABASE_URL, conn_max_age=600) # <--- Parse it
     }
+    print(f"DEBUG: Using PostgreSQL with URL: {DATABASE_URL} for database.") # <--- Added print for debugging
 
 
 # Password validation
@@ -227,7 +235,13 @@ SIMPLE_JWT = {
 }
 
 
-
-CORS_ALLOW_ALL_ORIGINS = ["https://blog-applicaion.onrender.com/"]
-
-
+# CORS configuration
+CORS_ALLOW_ALL_ORIGINS = False # It's safer to be explicit
+CORS_ALLOWED_ORIGINS = [
+    "https://blog-applicaion.onrender.com", # Your frontend URL
+    "http://localhost:3000", # Example for local frontend development
+    "http://127.0.0.1:3000", # Example for local frontend development
+]
+# If you need to allow all origins in development, you can use:
+# CORS_ALLOW_ALL_ORIGINS = True 
+# For production, always use CORS_ALLOWED_ORIGINS with specific domains.
