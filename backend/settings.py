@@ -14,6 +14,7 @@ from pathlib import Path
 from datetime import timedelta
 from environs import Env
 import os
+import dj_database_url
 
 env = Env()
 env.read_env()
@@ -94,17 +95,9 @@ WSGI_APPLICATION = 'backend.wsgi.application'
 
 
 # Database configuration
-if env.bool("USE_SQLITE", default=False):
-    DATABASES = {
-        'default': {
-            'ENGINE': 'django.db.backends.sqlite3',
-            'NAME': BASE_DIR / 'db.sqlite3',
-        }
-    }
-else:
-    DATABASES = {
-        'default': env.dj_db_url("DATABASE_URL")
-    }
+DATABASES = {
+    'default': dj_database_url.parse(env.str("DATABASE_URL"))
+}
 
 
 # Password validation
