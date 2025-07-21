@@ -95,9 +95,10 @@ WSGI_APPLICATION = 'backend.wsgi.application'
 # Database
 # https://docs.djangoproject.com/en/4.2/ref/settings/#databases
 
+
 DATABASES = {
-    'default': env.dj_db_url("DATABASE_URL", default="postgres://user:pass@localhost:5432/dbname")
-}
+        'default': env.dj_db_url("DATABASE_URL")
+    }
 
 
 # Password validation
