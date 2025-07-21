@@ -1,4 +1,4 @@
-from django.shortcuts import render, get_object_or_404
+from django.shortcuts import render, get_object_or_404 # Keep get_object_or_404
 from django.http import JsonResponse
 from django.core.mail import EmailMultiAlternatives
 from django.template.loader import render_to_string
@@ -14,7 +14,7 @@ from rest_framework.decorators import api_view, APIView
 from rest_framework.response import Response
 from rest_framework_simplejwt.views import TokenObtainPairView
 from rest_framework import generics
-from rest_framework.permissions import AllowAny, IsAuthenticated
+from rest_framework.permissions import AllowAny, IsAuthenticated # Keep IsAuthenticated
 from rest_framework.decorators import api_view, permission_classes
 from rest_framework_simplejwt.tokens import RefreshToken
 
@@ -168,38 +168,63 @@ class PostDetailAPIView(generics.RetrieveAPIView):
         return post
         
 class LikePostAPIView(APIView):
+    permission_classes = [IsAuthenticated] # <--- ADDED THIS FOR AUTHENTICATION
     @swagger_auto_schema(
         request_body=openapi.Schema(
             type=openapi.TYPE_OBJECT,
             properties={
-                'user_id': openapi.Schema(type=openapi.TYPE_INTEGER),
-                'post_id': openapi.Schema(type=openapi.TYPE_STRING),
+                # 'user_id': openapi.Schema(type=openapi.TYPE_INTEGER), # NO LONGER NEEDED IF USING request.user
+                'post_id': openapi.Schema(type=openapi.TYPE_INTEGER), # Changed to integer type
             },
+            required=['post_id'] # Mark post_id as required
         ),
     )
     def post(self, request):
-        user_id = request.data['user_id']
-        post_id = request.data['post_id']
+        # user_id = request.data.get('user_id') # <--- REMOVE THIS LINE
+        post_id = request.data.get('post_id') # Use .get() for safer access
 
-        user = api_models.User.objects.get(id=user_id)
-        post = api_models.Post.objects.get(id=post_id)
+        if not post_id:
+            return Response({"error": "Post ID is required."}, status=status.HTTP_400_BAD_REQUEST)
+
+        # Use request.user directly as the user is authenticated
+        user = request.user 
+        
+        try:
+            post = get_object_or_404(api_models.Post, id=post_id) # Use get_object_or_404
+        except Exception: # Broad exception for demonstration, be more specific in production
+            return Response({"error": "Post not found."}, status=status.HTTP_404_NOT_FOUND)
 
         # Check if post has already been liked by this user
         if user in post.likes.all():
             # If liked, unlike post
             post.likes.remove(user)
-            return Response({"message": "Post Disliked"}, status=status.HTTP_200_OK)
-        else:
-            # If post hasn't been liked, like the post by adding user to set of poeple who have liked the post
-            post.likes.add(user)
-            
-            # Create Notification for Author
-            api_models.Notification.objects.create(
-                user=post.user,
+            # Remove existing notification for this like (if it exists)
+            api_models.Notification.objects.filter(
+                user=post.user, # The author of the post
                 post=post,
                 type="Like",
-            )
-            return Response({"message": "Post Liked"}, status=status.HTTP_201_CREATED)
+            ).delete()
+            return Response({
+                "message": "Post Disliked",
+                "liked": False,
+                "likes_count": post.likes.count()
+                }, status=status.HTTP_200_OK)
+        else:
+            # If post hasn't been liked, like the post by adding user to set of people who have liked the post
+            post.likes.add(user)
+            
+            # Create Notification for Author (only if the liker is not the post author)
+            if user != post.user:
+                api_models.Notification.objects.create(
+                    user=post.user,
+                    post=post,
+                    type="Like",
+                )
+            return Response({
+                "message": "Post Liked",
+                "liked": True,
+                "likes_count": post.likes.count()
+                }, status=status.HTTP_201_CREATED)
 
         
 class PostCommentAPIView(APIView):
@@ -240,7 +265,7 @@ class PostCommentAPIView(APIView):
 
         # Return response back to the frontend
         return Response({"message": "Commented Sent"}, status=status.HTTP_201_CREATED)
- 
+    
 class BookmarkPostAPIView(APIView):
     @swagger_auto_schema(
         request_body=openapi.Schema(
@@ -293,13 +318,14 @@ class DashboardStats(generics.ListAPIView):
 
         views = api_models.Post.objects.filter(user=user).aggregate(view_count=Sum("views"))['view_count'] or 0
         posts = api_models.Post.objects.filter(user=user).count()
-        likes = api_models.Post.objects.filter(user=user).aggregate(total_likes=Sum("likes"))['total_likes'] or 0
+        # Changed likes calculation to correctly sum M2M relationships
+        total_likes_on_posts = sum(post.likes.count() for post in api_models.Post.objects.filter(user=user))
         bookmarks = api_models.Bookmark.objects.filter(user=user).count()
 
         return [{
             "views": views,
             "posts": posts,
-            "likes": likes,
+            "likes": total_likes_on_posts, # Use the corrected calculation
             "bookmarks": bookmarks,
         }]
 
@@ -326,6 +352,8 @@ class DashboardCommentLists(generics.ListAPIView):
     permission_classes = [AllowAny]
 
     def get_queryset(self):
+        # This currently returns all comments. If you want comments for a specific post or user,
+        # you'll need to pass those parameters (e.g., in kwargs or request.GET)
         return api_models.Comment.objects.all()
 
 class DashboardNotificationLists(generics.ListAPIView):
@@ -455,13 +483,3 @@ class DashboardPostEditAPIView(generics.RetrieveUpdateDestroyAPIView):
         post_instance.save()
 
         return Response({"message": "Post Updated Successfully"}, status=status.HTTP_200_OK)
-
-
-{
-    "title": "New post",
-    "image": "",
-    "description": "lorem",
-    "tags": "tags, here",
-    "category_id": 1,
-    "post_status": "Active"
-}
