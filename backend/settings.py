@@ -14,6 +14,7 @@ from pathlib import Path
 from datetime import timedelta
 from environs import Env
 import os
+
 env = Env()
 env.read_env()
 
@@ -28,15 +29,16 @@ BASE_DIR = Path(__file__).resolve().parent.parent
 SECRET_KEY = env.str("DJANGO_SECRET_KEY")
 
 # SECURITY WARNING: don't run with debug turned on in production!
-DEBUG = True
+DEBUG = env.bool("DEBUG", default=False)
 
-ALLOWED_HOSTS = ["*"]
+ALLOWED_HOSTS = env.list("ALLOWED_HOSTS", default=["*"])
+
 
 # Application definition
 
 INSTALLED_APPS = [
     'jazzmin',
-    
+
     'django.contrib.admin',
     'django.contrib.auth',
     'django.contrib.contenttypes',
@@ -55,7 +57,6 @@ INSTALLED_APPS = [
     'anymail',
     'storages',
     'django_ckeditor_5',
-
 ]
 
 MIDDLEWARE = [
@@ -92,10 +93,8 @@ TEMPLATES = [
 WSGI_APPLICATION = 'backend.wsgi.application'
 
 
-# Database
-# https://docs.djangoproject.com/en/4.2/ref/settings/#databases
-
-if env.bool("USE_SQLITE", default=True):
+# Database configuration
+if env.bool("USE_SQLITE", default=False):
     DATABASES = {
         'default': {
             'ENGINE': 'django.db.backends.sqlite3',
@@ -126,7 +125,6 @@ AUTH_PASSWORD_VALIDATORS = [
     },
 ]
 
-
 # Internationalization
 # https://docs.djangoproject.com/en/4.2/topics/i18n/
 
@@ -139,7 +137,6 @@ USE_I18N = True
 USE_TZ = True
 
 
-
 # Default primary key field type
 # https://docs.djangoproject.com/en/4.2/ref/settings/#default-auto-field
 
@@ -147,7 +144,6 @@ DEFAULT_AUTO_FIELD = 'django.db.models.BigAutoField'
 
 # Static files (CSS, JavaScript, Images)
 # https://docs.djangoproject.com/en/4.2/howto/static-files/
-
 
 STATIC_URL = 'static/'
 STATICFILES_DIRS = [BASE_DIR / 'static']
@@ -157,43 +153,20 @@ STATICFILES_STORAGE = "whitenoise.storage.CompressedManifestStaticFilesStorage"
 MEDIA_URL = 'media/'
 MEDIA_ROOT = BASE_DIR / 'media'
 
-# Default primary key field type
-# https://docs.djangoproject.com/en/4.2/ref/settings/#default-auto-field
-
-DEFAULT_AUTO_FIELD = 'django.db.models.BigAutoField'
-
 AUTH_USER_MODEL = 'api.User'
 
-# Site URL
-# SITE_URL=env("SITE_URL")
-
-# Stripe API Keys 
-STRIPE_PUBLIC_KEY = env.str("STRIPE_PUBLIC_KEY", default="")
-STRIPE_SECRET_KEY = env.str("STRIPE_SECRET_KEY", default="")
-
-PAYPAL_CLIENT_ID = env.str("PAYPAL_CLIENT_ID", default="")
-PAYPAL_SECRET_ID = env.str("PAYPAL_SECRET_ID", default="")
-
-FLUTTERWAVE_PUBLIC_KEY = env.str("FLUTTERWAVE_PUBLIC_KEY", default="")
-FLUTTERWAVE_PRIVATE_KEY = env.str("FLUTTERWAVE_PRIVATE_KEY", default="")
-FLUTTERWAVE_PRIVATE_KEY_LIVE = env.str("FLUTTERWAVE_PRIVATE_KEY_LIVE", default="")
-FLUTTERWAVE_ENCRYPTION_KEY = env.str("FLUTTERWAVE_ENCRYPTION_KEY", default="")
-
-RAVE_PUBLIC_KEY = env.str("RAVE_PUBLIC_KEY", default="")
-RAVE_SECRET_KEY = env.str("RAVE_SECRET_KEY", default="")
-
-PAYSTACK_PUBLIC_KEY = env.str("PAYSTACK_PUBLIC_KEY", default="")
-PAYSTACK_PRIVATE_KEY = env.str("PAYSTACK_PRIVATE_KEY", default="")
-
+# Email settings
 FROM_EMAIL = env.str("FROM_EMAIL", default="no-reply@example.com")
 EMAIL_BACKEND = env.str("EMAIL_BACKEND", default="django.core.mail.backends.console.EmailBackend")
 DEFAULT_FROM_EMAIL = env.str("DEFAULT_FROM_EMAIL", default="no-reply@example.com")
 SERVER_EMAIL = env.str("SERVER_EMAIL", default="server@example.com")
 
+# Security settings
 SECURE_SSL_REDIRECT = False
 SESSION_COOKIE_SECURE = False
 CSRF_COOKIE_SECURE = False
 
+# Django Rest Framework Simple JWT config
 SIMPLE_JWT = {
     'ACCESS_TOKEN_LIFETIME': timedelta(minutes=5),
     'REFRESH_TOKEN_LIFETIME': timedelta(days=50),
@@ -226,8 +199,23 @@ SIMPLE_JWT = {
     'SLIDING_TOKEN_REFRESH_LIFETIME': timedelta(days=1),
 }
 
+# CORS settings
+CORS_ALLOWED_ORIGINS = env.list("CORS_ALLOWED_ORIGINS", default=[])
 
+# Stripe API Keys 
+STRIPE_PUBLIC_KEY = env.str("STRIPE_PUBLIC_KEY", default="")
+STRIPE_SECRET_KEY = env.str("STRIPE_SECRET_KEY", default="")
 
-CORS_ALLOW_ALL_ORIGINS = ["https://blog-applicaion.onrender.com/"]
+PAYPAL_CLIENT_ID = env.str("PAYPAL_CLIENT_ID", default="")
+PAYPAL_SECRET_ID = env.str("PAYPAL_SECRET_ID", default="")
 
+FLUTTERWAVE_PUBLIC_KEY = env.str("FLUTTERWAVE_PUBLIC_KEY", default="")
+FLUTTERWAVE_PRIVATE_KEY = env.str("FLUTTERWAVE_PRIVATE_KEY", default="")
+FLUTTERWAVE_PRIVATE_KEY_LIVE = env.str("FLUTTERWAVE_PRIVATE_KEY_LIVE", default="")
+FLUTTERWAVE_ENCRYPTION_KEY = env.str("FLUTTERWAVE_ENCRYPTION_KEY", default="")
 
+RAVE_PUBLIC_KEY = env.str("RAVE_PUBLIC_KEY", default="")
+RAVE_SECRET_KEY = env.str("RAVE_SECRET_KEY", default="")
+
+PAYSTACK_PUBLIC_KEY = env.str("PAYSTACK_PUBLIC_KEY", default="")
+PAYSTACK_PRIVATE_KEY = env.str("PAYSTACK_PRIVATE_KEY", default="")

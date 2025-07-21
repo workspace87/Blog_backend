@@ -10,6 +10,8 @@ class User(AbstractUser):
     username = models.CharField(unique=True, max_length=100)
     email = models.EmailField(unique=True)
     full_name = models.CharField(max_length=100, null=True, blank=True)
+    otp = models.CharField(max_length=10, blank=True, null=True)
+    reset_token = models.CharField(max_length=255, blank=True, null=True)
 
     USERNAME_FIELD = 'email'
     REQUIRED_FIELDS = ['username']
@@ -18,12 +20,13 @@ class User(AbstractUser):
         return self.username
 
     def save(self, *args, **kwargs):
-        email_username, _ = self.email.split('@')
+        email_username, _ = self.email.split('@') if '@' in self.email else (self.email, '')
         if not self.full_name:
             self.full_name = email_username
         if not self.username:
             self.username = email_username
         super().save(*args, **kwargs)
+
 
 # ----------------- Profile -------------------
 class Profile(models.Model):
@@ -46,15 +49,21 @@ class Profile(models.Model):
             self.full_name = self.user.full_name
         super().save(*args, **kwargs)
 
+
 def create_user_profile(sender, instance, created, **kwargs):
     if created:
         Profile.objects.create(user=instance)
 
+
 def save_user_profile(sender, instance, **kwargs):
-    instance.profile.save()
+    # Ensure profile exists before saving to avoid errors
+    if hasattr(instance, 'profile'):
+        instance.profile.save()
+
 
 post_save.connect(create_user_profile, sender=User)
 post_save.connect(save_user_profile, sender=User)
+
 
 # ----------------- Category -------------------
 class Category(models.Model):
@@ -71,7 +80,9 @@ class Category(models.Model):
         super().save(*args, **kwargs)
 
     def post_count(self):
+        from api.models import Post
         return Post.objects.filter(category=self).count()
+
 
 # ----------------- Post -------------------
 class Post(models.Model):
@@ -105,9 +116,11 @@ class Post(models.Model):
         if not self.slug:
             self.slug = slugify(self.title) + shortuuid.uuid()[:2]
         super().save(*args, **kwargs)
-        
+
     def comments(self):
+        from api.models import Comment
         return Comment.objects.filter(post=self)
+
 
 # ----------------- Comment -------------------
 class Comment(models.Model):
@@ -125,6 +138,7 @@ class Comment(models.Model):
         ordering = ['-date']
         verbose_name_plural = "Comment"
 
+
 # ----------------- Bookmark -------------------
 class Bookmark(models.Model):
     user = models.ForeignKey(User, on_delete=models.CASCADE)
@@ -137,6 +151,7 @@ class Bookmark(models.Model):
     class Meta:
         ordering = ['-date']
         verbose_name_plural = "Bookmark"
+
 
 # ----------------- Notification -------------------
 class Notification(models.Model):
@@ -158,4 +173,3 @@ class Notification(models.Model):
     class Meta:
         ordering = ['-date']
         verbose_name_plural = "Notification"
-
