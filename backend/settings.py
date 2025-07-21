@@ -193,7 +193,7 @@ SIMPLE_JWT = {
 }
 
 # CORS settings
-CORS_ALLOWED_ORIGINS = env.list("CORS_ALLOWED_ORIGINS", default=[])
+CORS_ALLOWED_ORIGINS = env.list("CORS_ALLOWED_ORIGINS", ["https://blog-application.onrender.com"])
 
 # Stripe API Keys 
 STRIPE_PUBLIC_KEY = env.str("STRIPE_PUBLIC_KEY", default="")
