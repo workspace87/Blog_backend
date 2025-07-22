@@ -203,11 +203,21 @@ class LikePostAPIView(APIView):
         except (api_models.User.DoesNotExist, api_models.Post.DoesNotExist):
             return Response({"message": "User or Post not found."}, status=status.HTTP_404_NOT_FOUND)
 
+        current_likes = post.likes.count()
+
         if user in post.likes.all():
             post.likes.remove(user)
+            post.save()
+            updated_likes = post.likes.count()
+            # Optional: use logging instead print for production
+            print(f"Post Disliked by User {user_id}. Likes before: {current_likes}, after: {updated_likes}")
             return Response({"message": "Post Disliked"}, status=status.HTTP_200_OK)
         else:
             post.likes.add(user)
+            post.save()
+            updated_likes = post.likes.count()
+            print(f"Post Liked by User {user_id}. Likes before: {current_likes}, after: {updated_likes}")
+
             api_models.Notification.objects.create(
                 user=post.user,
                 post=post,
