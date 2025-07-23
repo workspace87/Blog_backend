@@ -125,6 +125,7 @@ class Post(models.Model):
 # ----------------- Comment -------------------
 class Comment(models.Model):
     post = models.ForeignKey(Post, on_delete=models.CASCADE, related_name='comments')
+    user = models.ForeignKey(User, on_delete=models.SET_NULL, null=True, blank=True, related_name='comments_made') # Added optional user field
     name = models.CharField(max_length=100)
     email = models.CharField(max_length=100)
     comment = models.TextField(null=True, blank=True)
@@ -159,17 +160,22 @@ class Notification(models.Model):
         ("Like", "Like"),
         ("Comment", "Comment"),
         ("Bookmark", "Bookmark"),
+        # Add other notification types if needed (e.g., "New Post", "Follow")
     )
 
-    user = models.ForeignKey(User, on_delete=models.CASCADE)
-    post = models.ForeignKey(Post, on_delete=models.CASCADE)
+    user = models.ForeignKey(User, on_delete=models.CASCADE, related_name="notifications_received") # The user *receiving* the notification
+    actor = models.ForeignKey(User, on_delete=models.SET_NULL, null=True, blank=True, related_name="notifications_sent", help_text="The user who performed the action (e.g., liked, commented)") # <--- ADDED THIS FIELD
+    post = models.ForeignKey(Post, on_delete=models.CASCADE, null=True, blank=True) # Allow null if some notifications might not be post-related
     type = models.CharField(max_length=100, choices=NOTI_TYPE, default="Like")
     seen = models.BooleanField(default=False)
     date = models.DateTimeField(auto_now_add=True)
 
     def __str__(self):
-        return f"{self.post.title} - {self.type}" if self.post else "Notification"
+        # Improved __str__ for better readability
+        if self.post:
+            return f"{self.type} on '{self.post.title}' by {self.actor.username if self.actor else 'Unknown'} to {self.user.username}"
+        return f"{self.type} notification to {self.user.username}"
 
     class Meta:
         ordering = ['-date']
-        verbose_name_plural = "Notification"
+        verbose_name_plural = "Notifications" # Corrected pluralization

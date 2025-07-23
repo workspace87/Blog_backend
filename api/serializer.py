@@ -153,3 +153,13 @@ class AuthorStats(serializers.Serializer):
     posts = serializers.IntegerField(default=0)
     likes = serializers.IntegerField(default=0)
     bookmarks = serializers.IntegerField(default=0)
+
+# ADDED THIS SERIALIZER
+class LikePostResponseSerializer(serializers.Serializer):
+    """
+    Serializer for the response of the LikePostAPIView.
+    Used for Swagger documentation.
+    """
+    message = serializers.CharField()
+    liked = serializers.BooleanField()
+    likes_count = serializers.IntegerField()
